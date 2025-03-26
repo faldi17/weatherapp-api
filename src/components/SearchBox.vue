@@ -1,31 +1,26 @@
 <template>
   <div class="search-box">
     <i class="bx bx-map"></i>
-    <input 
-      type="text" 
-      placeholder="Enter Your Location" 
-      v-model="searchCity" 
-      @keydown.enter="searchWeather"
-    />
+    <input v-model="searchQuery" type="text" placeholder="Enter Your Location" @keyup.enter="searchWeather" />
     <button class="bx bx-search-alt" @click="searchWeather"></button>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref } from "vue";
 
 export default {
-  emits: ['search'],
+  emits: ["search"],
   setup(_, { emit }) {
-    const searchCity = ref('');
+    const searchQuery = ref("");
 
     const searchWeather = () => {
-      if (searchCity.value.trim()) {
-        emit('search', searchCity.value.trim());
+      if (searchQuery.value.trim() !== "") {
+        emit("search", searchQuery.value);
       }
     };
 
-    return { searchCity, searchWeather };
+    return { searchQuery, searchWeather };
   },
 };
 </script>

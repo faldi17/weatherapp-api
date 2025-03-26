@@ -1,83 +1,56 @@
 <template>
-  <div class="container" :class="{ active: isActive }">
-    <SearchBox @search="fetchWeatherData" />
-    
-    <WeatherBox 
-      v-if="weatherData" 
-      :weatherData="weatherData" 
-      :icon="weatherIcon" 
-    />
-
-    <WeatherDetails 
-      v-if="weatherData" 
-      :humidity="weatherData.main.humidity" 
-      :windSpeed="weatherData.wind.speed" 
-    />
-
-    <NotFound v-if="notFound" />
+  <div class="container">
+    <SearchBox @search="fetchWeather" />
+    <p class="city-hide">{{ city }}</p>
+    <WeatherBox v-if="weatherData" :weatherData="weatherData" />
+    <WeatherDetails v-if="weatherData" :weatherData="weatherData" />
+    <NotFound v-if="error" />
   </div>
 </template>
 
 <script>
-import { ref } from 'vue';
-import SearchBox from './components/SearchBox.vue';
-import WeatherBox from './components/WeatherBox.vue';
-import WeatherDetails from './components/WeatherDetails.vue';
-import NotFound from './components/NotFound.vue';
+import { ref } from "vue";
+import SearchBox from "./components/SearchBox.vue";
+import WeatherBox from "./components/WeatherBox.vue";
+import WeatherDetails from "./components/WeatherDetails.vue";
+import NotFound from "./components/NotFound.vue";
 
 export default {
-  components: {
-    SearchBox,
-    WeatherBox,
-    WeatherDetails,
-    NotFound,
-  },
+  components: { SearchBox, WeatherBox, WeatherDetails, NotFound },
   setup() {
-    const APIKey = 'bdb4d953d6e29d42f78211d066a7b96f';
+    const city = ref("");
     const weatherData = ref(null);
-    const weatherIcon = ref('');
-    const notFound = ref(false);
-    const isActive = ref(false);
+    const error = ref(false);
+    const APIKey = "bdb4d953d6e29d42f78211d066a7b96f";
 
-    const fetchWeatherData = async (city) => {
-      if (!city) return;
+    const fetchWeather = async (searchCity) => {
+      if (!searchCity) return;
+      city.value = searchCity;
+      error.value = false;
 
       try {
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${APIKey}`
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=${searchCity}&units=metric&appid=${APIKey}`
         );
-        const data = await response.json();
+        const data = await res.json();
 
-        if (data.cod === '404') {
+        if (data.cod === "404") {
+          error.value = true;
           weatherData.value = null;
-          notFound.value = true;
-          isActive.value = false;
-          return;
+        } else {
+          weatherData.value = data;
         }
-
-        weatherData.value = data;
-        notFound.value = false;
-        isActive.value = true;
-
-        switch (data.weather[0].main) {
-          case 'Clear': weatherIcon.value = '/images/clear.png'; break;
-          case 'Clouds': weatherIcon.value = '/images/cloud.png'; break;
-          case 'Mist':
-          case 'Haze': weatherIcon.value = '/images/mist.png'; break;
-          case 'Rain': weatherIcon.value = '/images/rain.png'; break;
-          case 'Snow': weatherIcon.value = '/images/snow.png'; break;
-          default: weatherIcon.value = '/images/cloud.png';
-        }
-
-        setTimeout(() => {
-          isActive.value = false;
-        }, 2500);
-      } catch (error) {
-        console.error('Error fetching weather data:', error);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        error.value = true;
       }
     };
 
-    return { weatherData, weatherIcon, notFound, isActive, fetchWeatherData };
+    return { city, weatherData, error, fetchWeather };
   },
 };
 </script>
+
+<style scoped>
+@import "./style.css";
+</style>
